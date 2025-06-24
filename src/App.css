@@ -1,3 +1,8 @@
+body {
+  background-color: #282c34;
+  color: white;
+}
+
 .App {
   text-align: center;
 
@@ -40,3 +45,32 @@
   }
 }
 
+.login {
+  align-items: center;
+}
+
+.feed {
+  /* background-color: #323946; */
+  padding: 1rem;
+  border-radius: 1rem;
+}
+
+.feed .myPost{
+  background-color: #323946;
+  padding: 2rem 0.3rem;
+}
+.feed .othersPost{
+  background-color: #768fbe;
+  padding: 2rem 0.3rem;
+}
+
+button {
+  background-color: #768fbe;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+}
+
+input {
+  padding: 0.5rem 1rem;
+  background-color: white;
+}
