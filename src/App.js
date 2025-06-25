@@ -1,9 +1,10 @@
 import './App.css'
 import { useEffect, useState } from "react";
+import { FaGoogle } from "react-icons/fa";
 
 import { db } from "./firebase";
 import {
-  collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDocs, deleteDoc } from "firebase/firestore";
+  collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, doc, getDocs, deleteDoc } from "firebase/firestore";
 
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 const auth = getAuth();
@@ -32,6 +33,7 @@ function App() {
   const[user, setUser] = useState(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [feed, setFeed] = useState("me");
 
   useEffect(() => {
     
@@ -63,9 +65,18 @@ function App() {
     });
   }
 
+  function toggleFeed() {
+    if(feed === "me"){
+      setFeed("friends");
+    }
+    else {
+      setFeed("me");
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!emoji || !text) return;
+    if (!text) return;
 
     await addDoc(collection(db, "statuses"), {
       emoji,
@@ -77,23 +88,45 @@ function App() {
     });
     setEmoji("");
     setText("");
+    setFeed("me");
   };
 
   return (
     <div className="App">
       <h1>Status Wall</h1>
+      {user && (
+        <button onClick={async () => {
 
-      {/* <button onClick={async () => {
-        const snapshot = await getDocs(collection(db, "statuses"));
-        snapshot.forEach((docItem) => deleteDoc(doc(db, "statuses", docItem.id)));
-      }}>
-        Clear All Posts
-      </button> */}
+          if (!auth.currentUser) return;
+          const q = query(
+            collection(db, "statuses"),
+            where("userID", "==", auth.currentUser.uid)
+          );
+
+          const snapshot = await getDocs(q);
+          const deletions = snapshot.docs.map((docItem) =>
+            deleteDoc(doc(db, "statuses", docItem.id))
+          );
+
+          /* const snapshot = await getDocs(collection(db, "statuses"));
+          snapshot.forEach((docItem) => deleteDoc(doc(db, "statuses", docItem.id))); */
+        }}>
+          Clear All Posts
+        </button>
+      )}
+
+      {!user && (
+        <p style={{ color: "red", fontSize: "0.9rem" }}>
+          ⚠️ This is a personal test app. Do not enter real credentials.
+        </p>
+      )}
 
       
       {!user && (
         <div className='login'>
-          <form onSubmit={handleEmailLogin}>
+          <h2>Login</h2>
+
+          <form onSubmit={handleEmailLogin} className='loginForm'>
             <input
               type="email"
               value={email}
@@ -110,8 +143,8 @@ function App() {
 
           </form>
 
-          <button onClick={handleRegister} className="register">Register</button>
-          <button onClick={signIn} className="signInGoogleButton">Sign in with Google</button>
+          <button onClick={handleRegister} className="registerButton">Register</button>
+          <button onClick={signIn} className="signInGoogleButton">{/* <IoLogoGoogle size={24}/> */}Sign in with Google</button>
         </div>
       )}
 
@@ -123,31 +156,42 @@ function App() {
       )}
 
       {user ? (
-        <form onSubmit={handleSubmit} className='postForm'>
-          <input
-            value={emoji}
-            onChange={(e) => setEmoji(e.target.value)}
-            placeholder="Emoji"
-            maxLength={2}
-          />
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder={`What’s up?`}
-            maxLength={50}
-          />
-          <button type="submit">Post</button>
-        </form>
-      ) : (<p>Please sign in</p>)}
+        <div className='postForm'>
+          <h1>What's your status?</h1>
+          <form onSubmit={handleSubmit}>
+            <input
+              value={emoji}
+              onChange={(e) => setEmoji(e.target.value)}
+              placeholder={'😄'}
+              maxLength={2}
+              className='emojiInput'
+            />
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={`What’s up?`}
+              maxLength={50}
+            />
+            <button type="submit">Post</button>
+          </form>
+        </div>
+      ) : (<></>)}
 
-      <div className='feed'>
-        <h2>Live Feed</h2>
-        {statuses.map((s, i) => (
-            <p key={i} className={`post ${user && s.userName === user.displayName ? "myPost": "othersPost"}`}>
-              {s.userName || s.email}: {s.emoji} {s.text}
-            </p>
-        ))}
-      </div>
+      {user && (
+        <div className={`feed`}>
+          {/* <button onClick={() => setFeed(feed === "me" ? "friends" : "me")} className={`toggleFeed`}><h2>{feed === "me" ? "My Status" : "Followers Statuses"}</h2></button> */}
+          <div className={`toggleFeed ${feed}`}>
+            <button onClick={() => setFeed("me")} id="meButton"><h2>My Status</h2></button>
+            <button onClick={() => setFeed("friends")} id="friendsButton"><h2>Following Statuses</h2></button>
+          </div>
+          
+          {statuses.map((s, i) => (
+              <p key={i} className={`post ${user && s.userName === user.displayName ? "myPost": "othersPost"} ${feed}`}>
+                {s.userName || s.email}: {s.emoji} {s.text}
+              </p>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
