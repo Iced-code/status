@@ -93,7 +93,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Status Wall</h1>
+      <h1>Status</h1>
       {user && (
         <button onClick={async () => {
 
@@ -111,7 +111,7 @@ function App() {
           /* const snapshot = await getDocs(collection(db, "statuses"));
           snapshot.forEach((docItem) => deleteDoc(doc(db, "statuses", docItem.id))); */
         }}>
-          Clear All Posts
+          Clear my posts
         </button>
       )}
 
@@ -169,7 +169,7 @@ function App() {
             <input
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder={`What’s up?`}
+              placeholder='Start typing...'
               maxLength={50}
             />
             <button type="submit">Post</button>
@@ -182,12 +182,12 @@ function App() {
           {/* <button onClick={() => setFeed(feed === "me" ? "friends" : "me")} className={`toggleFeed`}><h2>{feed === "me" ? "My Status" : "Followers Statuses"}</h2></button> */}
           <div className={`toggleFeed ${feed}`}>
             <button onClick={() => setFeed("me")} id="meButton"><h2>My Status</h2></button>
-            <button onClick={() => setFeed("friends")} id="friendsButton"><h2>Following Statuses</h2></button>
+            <button onClick={() => setFeed("friends")} id="friendsButton"><h2>Following</h2></button>
           </div>
           
           {statuses.map((s, i) => (
-              <p key={i} className={`post ${user && s.userName === user.displayName ? "myPost": "othersPost"} ${feed}`}>
-                {s.userName || s.email}: {s.emoji} {s.text}
+              <p key={i} className={`post ${user && s.email === user.email ? "myPost": "othersPost"} ${feed}`}>
+                {(s.email).split("@")[0]}: {s.emoji} {s.text}
               </p>
           ))}
         </div>

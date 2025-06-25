@@ -104,6 +104,7 @@ button:hover {
 .toggleFeed button {
   background-color: transparent;
   text-decoration: underline;
+  display: inline-block;
 }
 
 .toggleFeed.me #meButton {
@@ -135,10 +136,6 @@ button:hover {
 .me.othersPost {
   display: none;
 }
-
-/* .friends.myPost {
-  display: none;
-} */
 
 .friends.othersPost {
   display: block;
