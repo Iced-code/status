@@ -137,6 +137,9 @@ button:hover {
   display: none;
 }
 
+.friends.myPost {
+  display: none;
+}
 .friends.othersPost {
   display: block;
 }

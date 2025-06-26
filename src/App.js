@@ -1,10 +1,11 @@
 import './App.css'
 import { useEffect, useState } from "react";
-import { FaGoogle } from "react-icons/fa";
+import { formatDistanceToNow } from "date-fns";
 
-import { db } from "./firebase";
-import {
-  collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, doc, getDocs, deleteDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "./firebase";
+
+import { collection, addDoc, setDoc, query, orderBy, onSnapshot, serverTimestamp, where, doc, getDocs, deleteDoc } from "firebase/firestore";
 
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 const auth = getAuth();
@@ -29,6 +30,8 @@ function logOut() {
 function App() {
   const [emoji, setEmoji] = useState("");
   const [text, setText] = useState("");
+  /* const [imageFile, setImageFile] = useState(null); */
+
   const [statuses, setStatuses] = useState([]);
   const[user, setUser] = useState(null);
   const [email, setEmail] = useState("");
@@ -43,7 +46,7 @@ function App() {
 
     const q = query(collection(db, "statuses"), orderBy("timestamp", "desc"));
     const unsubscribe2 = onSnapshot(q, (snapshot) => {
-      setStatuses(snapshot.docs.map((doc) => doc.data()));
+      setStatuses(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     });
     return () => {unsubscribe(); unsubscribe2();};
   }, []);
@@ -61,34 +64,36 @@ function App() {
     signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
       console.log("Signed in as:", userCredential.user);
     }).catch((error) => {
-      alert(error.message);
+      alert(error + error.message);
     });
-  }
-
-  function toggleFeed() {
-    if(feed === "me"){
-      setFeed("friends");
-    }
-    else {
-      setFeed("me");
-    }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!text) return;
+    setFeed("me");
 
-    await addDoc(collection(db, "statuses"), {
+    /* let imageURL = null;
+    if(imageFile) {
+      const storageRef = ref(storage, `images/${auth.currentUser.uid}_${Date.now()}`);
+      alert("User: " + user.email);
+      await uploadBytes(storageRef, imageFile);
+      alert("HERE");
+      imageURL = await getDownloadURL(storageRef);
+      console.log("Image uploaded. URL:", imageURL);
+    } */
+
+    await setDoc(doc(db, "statuses", auth.currentUser.uid), {
       emoji,
       text,
+      /* imageURL, */
       timestamp: serverTimestamp(),
       userID: auth.currentUser.uid,
-      userName: auth.currentUser.displayName,
       email: auth.currentUser.email || user.email
     });
     setEmoji("");
     setText("");
-    setFeed("me");
+    /* setImageFile(null); */
   };
 
   return (
@@ -108,8 +113,6 @@ function App() {
             deleteDoc(doc(db, "statuses", docItem.id))
           );
 
-          /* const snapshot = await getDocs(collection(db, "statuses"));
-          snapshot.forEach((docItem) => deleteDoc(doc(db, "statuses", docItem.id))); */
         }}>
           Clear my posts
         </button>
@@ -144,13 +147,13 @@ function App() {
           </form>
 
           <button onClick={handleRegister} className="registerButton">Register</button>
-          <button onClick={signIn} className="signInGoogleButton">{/* <IoLogoGoogle size={24}/> */}Sign in with Google</button>
+          <button onClick={signIn} className="signInGoogleButton">Sign in with Google</button>
         </div>
       )}
 
       {user && (
         <>
-          <p>{`Signed in as: ${user.displayName || user.email}`}</p>
+          <p>{`Signed in as: ${user.email}`}</p>
           <button onClick={logOut}>Sign out</button>
         </>
       )}
@@ -172,6 +175,12 @@ function App() {
               placeholder='Start typing...'
               maxLength={50}
             />
+
+            {/* <input
+              type='file'
+              accept='image/*'
+              onChange={(e) => setImageFile(e.target.files[0])}
+            /> */}
             <button type="submit">Post</button>
           </form>
         </div>
@@ -185,11 +194,24 @@ function App() {
             <button onClick={() => setFeed("friends")} id="friendsButton"><h2>Following</h2></button>
           </div>
           
-          {statuses.map((s, i) => (
-              <p key={i} className={`post ${user && s.email === user.email ? "myPost": "othersPost"} ${feed}`}>
-                {(s.email).split("@")[0]}: {s.emoji} {s.text}
-              </p>
-          ))}
+          {statuses.map((s, i) => {
+              const relativeTime = s.timestamp?.toDate() 
+              ? formatDistanceToNow(s.timestamp.toDate(), {addSuffix: true}) : "just now";
+
+              return (
+                <div>
+                  <p key={i} className={`post ${user && s.email === user.email ? "myPost": "othersPost"} ${feed}`}>
+                    {(s.email).split("@")[0]}: {s.emoji} {s.text} 
+                    <br></br>
+                    <small>{relativeTime}</small>
+                  </p>
+                  {/* { s.imageURL && (
+                    <img src={s.imageURL} alt="user post" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '0.5rem' }} />
+                  )} */}
+                </div>
+                
+              );
+          })}
         </div>
       )}
     </div>
