@@ -30,7 +30,6 @@ function logOut() {
 function App() {
   const [emoji, setEmoji] = useState("");
   const [text, setText] = useState("");
-  /* const [imageFile, setImageFile] = useState(null); */
 
   const [statuses, setStatuses] = useState([]);
   const[user, setUser] = useState(null);
@@ -73,27 +72,16 @@ function App() {
     if (!text) return;
     setFeed("me");
 
-    /* let imageURL = null;
-    if(imageFile) {
-      const storageRef = ref(storage, `images/${auth.currentUser.uid}_${Date.now()}`);
-      alert("User: " + user.email);
-      await uploadBytes(storageRef, imageFile);
-      alert("HERE");
-      imageURL = await getDownloadURL(storageRef);
-      console.log("Image uploaded. URL:", imageURL);
-    } */
-
-    await setDoc(doc(db, "statuses", auth.currentUser.uid), {
+    // await setDoc(doc(db, "statuses", auth.currentUser.uid), {
+    await addDoc(collection(db, "statuses"), {
       emoji,
       text,
-      /* imageURL, */
       timestamp: serverTimestamp(),
       userID: auth.currentUser.uid,
       email: auth.currentUser.email || user.email
     });
     setEmoji("");
     setText("");
-    /* setImageFile(null); */
   };
 
   return (
@@ -113,6 +101,7 @@ function App() {
             deleteDoc(doc(db, "statuses", docItem.id))
           );
 
+          setFeed("me");
         }}>
           Clear my posts
         </button>
@@ -175,16 +164,27 @@ function App() {
               placeholder='Start typing...'
               maxLength={50}
             />
-
-            {/* <input
-              type='file'
-              accept='image/*'
-              onChange={(e) => setImageFile(e.target.files[0])}
-            /> */}
             <button type="submit">Post</button>
           </form>
         </div>
       ) : (<></>)}
+
+      {/* {user && (
+        <div>
+          {statuses.map((s, i) => {
+              return (
+                <div>
+                  <p key={i} className={`post ${user && s.email === user.email ? "myPost": "othersPost"} ${feed}`}>
+                    {(s.email).split("@")[0]}: {s.emoji} {s.text}
+                  </p>
+                </div>
+                
+              );
+          })}
+
+          <p id='output'></p>
+        </div>
+      )} */}
 
       {user && (
         <div className={`feed`}>
@@ -205,15 +205,14 @@ function App() {
                     <br></br>
                     <small>{relativeTime}</small>
                   </p>
-                  {/* { s.imageURL && (
-                    <img src={s.imageURL} alt="user post" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '0.5rem' }} />
-                  )} */}
                 </div>
                 
               );
           })}
         </div>
       )}
+
+      <script src="C:/Users/dracg/gitQuick/script.js"></script>
     </div>
   );
 }
