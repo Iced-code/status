@@ -87,25 +87,6 @@ function App() {
   return (
     <div className="App">
       <h1>Status</h1>
-      {user && (
-        <button onClick={async () => {
-
-          if (!auth.currentUser) return;
-          const q = query(
-            collection(db, "statuses"),
-            where("userID", "==", auth.currentUser.uid)
-          );
-
-          const snapshot = await getDocs(q);
-          const deletions = snapshot.docs.map((docItem) =>
-            deleteDoc(doc(db, "statuses", docItem.id))
-          );
-
-          setFeed("me");
-        }}>
-          Clear my posts
-        </button>
-      )}
 
       {!user && (
         <p style={{ color: "red", fontSize: "0.9rem" }}>
@@ -195,20 +176,39 @@ function App() {
           </div>
           
           {statuses.map((s, i) => {
-              const relativeTime = s.timestamp?.toDate() 
-              ? formatDistanceToNow(s.timestamp.toDate(), {addSuffix: true}) : "just now";
+            const relativeTime = s.timestamp?.toDate() 
+            ? formatDistanceToNow(s.timestamp.toDate(), {addSuffix: true}) : "just now";
 
-              return (
-                <div>
-                  <p key={i} className={`post ${user && s.email === user.email ? "myPost": "othersPost"} ${feed}`}>
-                    {(s.email).split("@")[0]}: {s.emoji} {s.text} 
-                    <br></br>
-                    <small>{relativeTime}</small>
-                  </p>
-                </div>
-                
-              );
+            return (
+              <div>
+                <p key={i} className={`post ${user && s.email === user.email ? "myPost": "othersPost"} ${feed}`}>
+                  {(s.email).split("@")[0]}: {s.emoji} {s.text} 
+                  <br></br>
+                  <small>{relativeTime}</small>
+                </p>
+              </div>
+            );
           })}
+
+          {feed === "me" && statuses.length > 1 && (
+            <button onClick={async () => {
+
+              if (!auth.currentUser) return;
+              const q = query(
+                collection(db, "statuses"),
+                where("userID", "==", auth.currentUser.uid)
+              );
+
+              const snapshot = await getDocs(q);
+              const deletions = snapshot.docs.map((docItem) =>
+                deleteDoc(doc(db, "statuses", docItem.id))
+              );
+
+              setFeed("me");
+            }}>
+              Clear my posts
+            </button>
+          )}
         </div>
       )}
 
