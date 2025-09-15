@@ -190,9 +190,9 @@ function App() {
             );
           })}
 
-          {feed === "me" && statuses.length > 1 && (
+          {feed === "me" && statuses.length > 0 && (
             <button onClick={async () => {
-
+              
               if (!auth.currentUser) return;
               const q = query(
                 collection(db, "statuses"),

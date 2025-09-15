@@ -103,14 +103,16 @@ button:hover {
 
 .toggleFeed button {
   background-color: transparent;
-  text-decoration: underline;
+  
   display: inline-block;
 }
 
 .toggleFeed.me #meButton {
+  text-decoration: underline;
   text-decoration-color: #367de6;
 }
 .toggleFeed.friends #friendsButton {
+  text-decoration: underline;
   text-decoration-color: #367de6;
 }
 
