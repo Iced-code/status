@@ -37,6 +37,8 @@ function App() {
   const [password, setPassword] = useState("");
   const [feed, setFeed] = useState("me");
 
+  const [allText, setallText] = useState("");
+
   useEffect(() => {
     
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -65,6 +67,15 @@ function App() {
     }).catch((error) => {
       alert(error + error.message);
     });
+  }
+
+  function createTextSummary(){
+    setallText("");
+
+    for(let i = 0; i < statuses.length; i++){ 
+      setallText(allText + " " + statuses[i].text);
+    }
+    console.log(allText);
   }
 
   const handleSubmit = async (e) => {
@@ -169,7 +180,8 @@ function App() {
 
       {user && (
         <div className={`feed`}>
-          {/* <button onClick={() => setFeed(feed === "me" ? "friends" : "me")} className={`toggleFeed`}><h2>{feed === "me" ? "My Status" : "Followers Statuses"}</h2></button> */}
+          {/* <button id="summary" onClick={createTextSummary}></button> */}
+          
           <div className={`toggleFeed ${feed}`}>
             <button onClick={() => setFeed("me")} id="meButton"><h2>My Status</h2></button>
             <button onClick={() => setFeed("friends")} id="friendsButton"><h2>Following</h2></button>
@@ -192,7 +204,6 @@ function App() {
 
           {feed === "me" && statuses.length > 0 && (
             <button onClick={async () => {
-              
               if (!auth.currentUser) return;
               const q = query(
                 collection(db, "statuses"),
