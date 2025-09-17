@@ -37,7 +37,7 @@ function App() {
   const [password, setPassword] = useState("");
   const [feed, setFeed] = useState("me");
 
-  const [allText, setallText] = useState("");
+  const [allText, setAllText] = useState("");
 
   useEffect(() => {
     
@@ -70,11 +70,14 @@ function App() {
   }
 
   function createTextSummary(){
-    setallText("");
+    let combText = "";
 
     for(let i = 0; i < statuses.length; i++){ 
-      setallText(allText + " " + statuses[i].text);
+      if(user.uid !== statuses[i].userID){
+        combText += " " + statuses[i].text;
+      }
     }
+    setAllText(combText);
     console.log(allText);
   }
 
@@ -180,7 +183,10 @@ function App() {
 
       {user && (
         <div className={`feed`}>
-          {/* <button id="summary" onClick={createTextSummary}></button> */}
+          <div>
+            <button id="summarizeBtn" onClick={createTextSummary}>Summarize</button>
+            <pre id="output"></pre>
+          </div>
           
           <div className={`toggleFeed ${feed}`}>
             <button onClick={() => setFeed("me")} id="meButton"><h2>My Status</h2></button>
