@@ -69,16 +69,53 @@ function App() {
     });
   }
 
-  function createTextSummary(){
+  const createTextSummary = async(e) => {
     let combText = "";
 
     for(let i = 0; i < statuses.length; i++){ 
-      if(user.uid !== statuses[i].userID){
-        combText += " " + statuses[i].text;
+      if(/* user.uid !== statuses[i].userID */true){
+        combText += (statuses[i].email).split("@")[0] + " said: \"" + statuses[i].text + "\"\n";
       }
     }
-    setAllText(combText);
-    console.log(allText);
+
+    console.log(combText);
+    
+    if (!('Summarizer' in window)) {
+      alert("Summarizer API not available in your browser.");
+      return;
+    }
+
+    const availability = await window.Summarizer.availability();
+    console.log("Summarizer availability:", availability);
+
+    // ERROR message if API not available
+    if (availability === "unavailable") {
+      alert("Summarizer not available on this device.");
+      return;
+    }
+
+    // ***  Summary format & customization  ***
+    const summarizer = await window.Summarizer.create({
+      /* type: type,
+      length: length,
+      format: 'markdown' */
+      /* type: 'key-points',   // or 'tldr', 'teaser', 'headline'
+      length: 'long',     // 'short', 'medium', 'long'
+      format: 'markdown'    // 'markdown' or 'plain-text' */
+      type: 'key-points',
+      length: 'short',
+      format: 'markdown'
+    });
+
+    // ERROR message if input empty
+    if (!combText.trim()) {
+      alert("Please enter some text to summarize.");
+      return;
+    }
+
+    const result = await summarizer.summarize(combText);
+    document.getElementById('output').textContent = result;
+    
   }
 
   const handleSubmit = async (e) => {
@@ -183,12 +220,11 @@ function App() {
 
       {user && (
         <div className={`feed`}>
-          <div>
-            <button id="summarizeBtn" onClick={createTextSummary}>Summarize</button>
-            <pre id="output"></pre>
-          </div>
           
           <div className={`toggleFeed ${feed}`}>
+            <button id="summarizeBtn" onClick={createTextSummary}>Summarize</button>
+            <pre id="output"></pre>
+
             <button onClick={() => setFeed("me")} id="meButton"><h2>My Status</h2></button>
             <button onClick={() => setFeed("friends")} id="friendsButton"><h2>Following</h2></button>
           </div>
